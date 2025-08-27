@@ -39,6 +39,9 @@
 ## User Interface
 
 ### Main Window Layout
+
+**Note**: This visual representation is based on source code analysis, as the MFC application cannot be built on the Linux development environment.
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ ex05a                                              [_][□][X]
@@ -48,14 +51,39 @@
 │ [New] [Open] [Save] │ [Cut] [Copy] [Paste] │ [Print] [?] │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
+│ This is 24-point Arial                                  │
 │                                                         │
-│                    Document View Area                   │
+│ This is 22-point Arial                                  │
 │                                                         │
+│ This is 20-point Arial                                  │
+│                                                         │
+│ This is 18-point Arial                                  │
+│                                                         │
+│ This is 16-point Arial                                  │
+│                                                         │
+│ This is 14-point Arial                                  │
+│                                                         │
+│ This is 12-point Arial                                  │
+│                                                         │
+│ This is 10-point Arial                                  │
+│                                                         │
+│ This is 8-point Arial                                   │
+│                                                         │
+│ This is 6-point Arial                                   │
 │                                                         │
 ├─────────────────────────────────────────────────────────┤
-│ Ready                                              NUM  │
+│ Ready                                         CAPS NUM  │
 └─────────────────────────────────────────────────────────┘
 ```
+
+### Application Behavior
+The ex05a application is a **font demonstration program** that displays Arial text in progressively larger sizes from 6-point to 24-point. The main view area shows the text "This is X-point Arial" for each font size, with larger fonts appearing at the top and smaller fonts at the bottom.
+
+### Technical Rendering Details
+- **Coordinate System**: Uses MM_ANISOTROPIC mapping mode with logical units
+- **Font Creation**: Creates Arial fonts dynamically using CreateFont() with specific point sizes
+- **Text Positioning**: Vertical positioning decreases for each subsequent font size
+- **Device Capabilities**: Logs screen resolution and physical dimensions during rendering
 
 ### Menu Structure
 - **File**: New, Open, Save, Save As, Recent Files, Exit
@@ -71,15 +99,22 @@
 ## Data Management
 
 ### Document Model
-- **Data Storage**: In-memory document data
-- **Serialization**: CArchive-based file I/O
-- **File Formats**: Custom application format
+- **Data Storage**: No persistent data - demonstration application only
+- **Serialization**: Standard CArchive-based file I/O (inherited from MFC framework)
+- **File Formats**: Standard MFC document format (minimal content)
 - **Data Validation**: Basic document state management
+
+### Font Demonstration Data
+- **Font Sizes**: Hardcoded range from 6pt to 24pt in 2-point increments
+- **Font Family**: Arial (system font)
+- **Text Content**: Static template "This is X-point Arial" for each size
+- **Rendering Parameters**: Font weight 400 (normal), no italic, no underline
 
 ### No External Data Sources
 - No database connectivity
 - No API integrations
-- Self-contained application data
+- Self-contained demonstration application
+- No user-editable content
 
 ## Validation Rules
 
@@ -98,22 +133,56 @@
 
 ### .NET Equivalent Architecture
 ```csharp
-// Proposed .NET structure
-public class DocumentViewModel : INotifyPropertyChanged
+// Proposed .NET structure for font demonstration
+public class FontDemoViewModel : INotifyPropertyChanged
 {
-    public string Content { get; set; }
+    public ObservableCollection<FontDisplayItem> FontSizes { get; set; }
     public bool IsModified { get; set; }
     public string FilePath { get; set; }
     
     public ICommand NewCommand { get; }
     public ICommand OpenCommand { get; }
     public ICommand SaveCommand { get; }
+    public ICommand PrintCommand { get; }
+    
+    public FontDemoViewModel()
+    {
+        FontSizes = new ObservableCollection<FontDisplayItem>();
+        InitializeFontSizes();
+    }
+    
+    private void InitializeFontSizes()
+    {
+        for (int size = 6; size <= 24; size += 2)
+        {
+            FontSizes.Add(new FontDisplayItem 
+            { 
+                Size = size, 
+                Text = $"This is {size}-point Arial",
+                FontFamily = new FontFamily("Arial")
+            });
+        }
+    }
 }
 
-public class MainWindow : Window
+public class FontDisplayItem
 {
-    public DocumentViewModel ViewModel { get; set; }
+    public int Size { get; set; }
+    public string Text { get; set; }
+    public FontFamily FontFamily { get; set; }
 }
+
+// WPF XAML for font display
+<ItemsControl ItemsSource="{Binding FontSizes}">
+    <ItemsControl.ItemTemplate>
+        <DataTemplate>
+            <TextBlock Text="{Binding Text}" 
+                       FontFamily="{Binding FontFamily}"
+                       FontSize="{Binding Size}"
+                       Margin="0,5"/>
+        </DataTemplate>
+    </ItemsControl.ItemTemplate>
+</ItemsControl>
 ```
 
 ### Migration Benefits
