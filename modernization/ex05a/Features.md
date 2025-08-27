@@ -1,5 +1,13 @@
 # ex05a Application Features Documentation
 
+## Summary
+
+The ex05a application is a demonstration program showcasing MFC Document/View architecture with font display capabilities. It provides standard Windows application features including menus, toolbar, status bar, and About dialog, but contains no user-editable content or complex validation rules. The primary functionality is displaying Arial fonts in various sizes to demonstrate font rendering and device-independent graphics programming.
+
+The application follows standard Windows UI conventions and provides familiar user interaction patterns, making it an excellent example for understanding MFC application structure and basic Windows programming concepts. **Key characteristic: This is a demonstration application with minimal file I/O implementation - the File menu operations (New, Open, Save, Save As) provide standard UI but do not save or load meaningful document data.**
+
+---
+
 ## 1. Application Loading and Startup Conditions
 
 ### Initialization Sequence
@@ -44,25 +52,85 @@
 ## 2. Main Menu Functionality
 
 ### File Menu
-- **New (Ctrl+N)** - `ID_FILE_NEW`
-  - Creates a new document instance
-  - Clears current view and resets document state
-  - Triggers `CEx05aDoc::OnNewDocument()`
 
-- **Open (Ctrl+O)** - `ID_FILE_OPEN`
-  - Opens file dialog for document selection
-  - Loads document through serialization
-  - Updates MRU (Most Recently Used) file list
+#### **New (Ctrl+N)** - `ID_FILE_NEW`
+- **Functionality**: Creates a new document instance
+- **Implementation**: Calls `CEx05aDoc::OnNewDocument()` which only invokes base class method
+- **Document State**: Resets document to clean state, clears modified flag
+- **View Effect**: Triggers view refresh, redisplays font demonstration
+- **File Data**: No actual document data is created or cleared (demonstration app)
+- **Side Effects**: 
+  - Window title changes to "ex05a" (removes any filename)
+  - Document marked as unmodified
+  - View redraws with standard font display
 
-- **Save (Ctrl+S)** - `ID_FILE_SAVE`
-  - Saves current document to existing file
-  - Prompts for filename if document is new
-  - Uses `CEx05aDoc::Serialize()` for data persistence
+#### **Open (Ctrl+O)** - `ID_FILE_OPEN`
+- **Functionality**: Displays standard Windows file open dialog
+- **File Types**: Accepts any file type (no specific filter implemented)
+- **Default Extension**: Uses MFC default document extension
+- **Implementation**: Calls `CEx05aDoc::Serialize()` for loading
+- **Actual Behavior**: 
+  - **File Content**: Serialization method contains only TODO comments - no actual data loading
+  - **Result**: File is "opened" but no content changes in the view
+  - **Font Display**: Remains the same regardless of file content
+- **MRU Update**: Successfully opened files are added to Most Recently Used list
+- **Error Handling**: Standard MFC file error handling (file not found, access denied, etc.)
+- **Side Effects**:
+  - Window title updates to show opened filename
+  - Document marked as unmodified
+  - MRU menu updated with new file entry
 
-- **Save As** - `ID_FILE_SAVE_AS`
-  - Always prompts for new filename
-  - Saves document with new name
-  - Updates document title and MRU list
+#### **Save (Ctrl+S)** - `ID_FILE_SAVE`
+- **Functionality**: Saves current document to file
+- **First Save Behavior**: If document is new (untitled), prompts for filename like Save As
+- **Subsequent Saves**: Uses existing filename without prompting
+- **Implementation**: Calls `CEx05aDoc::Serialize()` for storing
+- **Actual Behavior**:
+  - **File Content**: Serialization method contains only TODO comments - no actual data saving
+  - **File Creation**: Creates empty or minimal file with MFC document structure
+  - **File Size**: Minimal file size (likely just MFC document headers)
+- **File Format**: Standard MFC document format (binary serialization)
+- **Default Extension**: Uses application's default document extension
+- **Side Effects**:
+  - Document marked as unmodified (clears asterisk from title)
+  - Window title updated with saved filename
+  - File timestamp updated in filesystem
+
+#### **Save As** - `ID_FILE_SAVE_AS`
+- **Functionality**: Always prompts for new filename regardless of document state
+- **File Dialog**: Standard Windows Save As dialog with file type filters
+- **File Overwrite**: Prompts for confirmation if file already exists
+- **Implementation**: Uses same `CEx05aDoc::Serialize()` method as Save
+- **Actual Behavior**:
+  - **File Content**: Creates file with minimal content (same as Save)
+  - **Original File**: Previous file remains unchanged if saving with new name
+- **Document Association**: Document becomes associated with new filename
+- **Side Effects**:
+  - Window title changes to new filename
+  - Document marked as unmodified
+  - MRU list updated with new filename
+  - Previous filename removed from document association
+
+#### **File Format and Content Details**
+- **Demonstration Nature**: This application is a font display demonstration, not a document editor
+- **Serialization Implementation**: 
+  ```cpp
+  void CEx05aDoc::Serialize(CArchive& ar)
+  {
+      if (ar.IsStoring())
+      {
+          // TODO: add storing code here
+      }
+      else
+      {
+          // TODO: add loading code here
+      }
+  }
+  ```
+- **Actual File Content**: Files created contain minimal MFC document structure
+- **Data Persistence**: No font display settings, user data, or application state is saved
+- **File Purpose**: Files serve as placeholders demonstrating MFC file I/O framework
+- **Compatibility**: Files can be "opened" by the application but contain no meaningful data
 
 - **Recent Files** - `ID_FILE_MRU_FILE1`
   - Displays list of recently opened files
@@ -407,9 +475,3 @@ The application logs the following device information to debug output:
 - **Memory Management**: Validates memory allocation success
 
 ---
-
-## Summary
-
-The ex05a application is a demonstration program showcasing MFC Document/View architecture with font display capabilities. It provides standard Windows application features including menus, toolbar, status bar, and About dialog, but contains no user-editable content or complex validation rules. The primary functionality is displaying Arial fonts in various sizes to demonstrate font rendering and device-independent graphics programming.
-
-The application follows standard Windows UI conventions and provides familiar user interaction patterns, making it an excellent example for understanding MFC application structure and basic Windows programming concepts.
