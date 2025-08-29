@@ -240,6 +240,37 @@ public class FontDisplayItem
 - File operations can be simplified or removed without business impact
 - Modern .NET font rendering capabilities provide equivalent educational value
 
+## User Interface Layout
+
+### Main Application Window
+```
+┌─────────────────────────────────────────────────────────┐
+│ ex05a                                              [_][□][X]
+├─────────────────────────────────────────────────────────┤
+│ File  Edit  View  Help                                  │
+├─────────────────────────────────────────────────────────┤
+│ [New] [Open] [Save] │ [Cut] [Copy] [Paste] │ [Print] [?] │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ This is 24-point Arial                                  │
+│                                                         │
+│ This is 22-point Arial                                  │
+│ This is 20-point Arial                                  │
+│ This is 18-point Arial                                  │
+│ This is 16-point Arial                                  │
+│ This is 14-point Arial                                  │
+│ This is 12-point Arial                                  │
+│ This is 10-point Arial                                  │
+│ This is 8-point Arial                                   │
+│ This is 6-point Arial                                   │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│ Ready                                         CAPS NUM  │
+└─────────────────────────────────────────────────────────┘
+```
+
+*UI Diagram Source: Rendered from analysis of `ex05aView.cpp:65-85` showing font size loop (24pt to 6pt in 2pt decrements), `MainFrm.cpp` showing standard MFC Document/View window structure with toolbar and status bar, and `ex05a.rc` resource file defining menu items (File, Edit, View, Help) and toolbar buttons (New, Open, Save, Cut, Copy, Paste, Print, About).*
+
 ---
 
 *This analysis provides evidence-based assessment of ex05a as a minimal-complexity font demonstration application ideal for initial .NET migration experience and team training.*

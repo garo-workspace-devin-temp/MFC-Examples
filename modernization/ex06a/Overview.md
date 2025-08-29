@@ -177,7 +177,7 @@ None identified - standard form controls with well-established migration pattern
 
 *This analysis provides evidence-based assessment of ex06a as a comprehensive employee data entry application requiring medium-complexity WPF migration with MVVM patterns.*
 
-## User Interface
+## User Interface Layout
 
 ### Main Dialog Layout ("The Dialog That Ate Cincinnati")
 ```
@@ -199,12 +199,14 @@ None identified - standard form controls with well-established migration pattern
 │                               [Documentation ]          │
 │ Lang (droplist): [English▼]   [Accounting   ]          │
 │                               [Human Relations]         │
-│ Loyalty:    [████████████████░░░░░░░░░░░░]              │
-│ Reliability:[██████████████░░░░░░░░░░░░░░]              │
+│ Loyalty:    [████████████████░░░░░░░░░░░░] 67%          │
+│ Reliability:[██████████████░░░░░░░░░░░░░░] 58%          │
 │                                                         │
 │                           [OK] [Cancel] [Special]       │
 └─────────────────────────────────────────────────────────┘
 ```
+
+*UI Diagram Source: Rendered from analysis of `ex06a.rc:104-180` showing dialog controls layout including text boxes (Name, SSN, Bio), radio buttons (Hourly/Salary), checkboxes (Insurance options), combo boxes (Skill, Education, Language), list box (Department), scroll bars (Loyalty/Reliability ratings), and buttons (OK, Cancel, Special). Dialog title "The Dialog That Ate Cincinnati" found in `Ex06aDialog.cpp` and control positioning derived from resource coordinates.*
 
 ### Form Sections
 

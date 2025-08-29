@@ -179,9 +179,9 @@ CStringArray m_arrayFieldName; // Dynamic field names
 
 *This analysis provides evidence-based assessment of ex28d as a critical database browser application requiring high-complexity Entity Framework Core migration with multiple database provider support.*
 
-## User Interface
+## User Interface Layout
 
-### Main Application Layout
+### Main Application Window
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ ex28d - Database Browser                           [X]   │
@@ -205,6 +205,8 @@ CStringArray m_arrayFieldName; // Dynamic field names
 │ Connected to: [Database Name] | Records: 156 | Row: 3   │
 └─────────────────────────────────────────────────────────┘
 ```
+
+*UI Diagram Source: Rendered from analysis of `ex28d.rc:85-97` showing standard MFC toolbar with File/Edit operations, `ex28dView.cpp` implementing CListView with report mode for tabular data display, `ex28dDoc.h:23-31` showing CStringArray for dynamic field names, and `TableSel.cpp` providing table selection dialog. Query input and database connection controls derived from ODBC-specific menu items and toolbar buttons.*
 
 ### Table Selection Dialog
 ```
