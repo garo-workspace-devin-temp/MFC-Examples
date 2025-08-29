@@ -65,6 +65,104 @@ graph TD
 
 **Evidence**: Form workflow from basic information through skills assessment shows complete employee data lifecycle management
 
+## Entity Relationship Diagram
+
+### No Persistent Database Schema
+
+ex06a does not implement a persistent database schema. The application is designed as a dialog-based form demonstration that manages employee data entirely in memory during the application session.
+
+**Evidence**: 
+- No CDatabase or CRecordset classes found in source code
+- No database connection strings or SQL queries present
+- Form controls map directly to dialog member variables without persistence layer
+- Application focuses on UI control demonstration rather than data management
+
+<cite repo="garo-workspace-devin-temp/MFC-Examples" path="VC++jsnm code/ex06a/Ex06aDialog.h" start="20" end="40" />
+
+### In-Memory Data Structure
+
+The application manages employee information using dialog member variables:
+
+```mermaid
+classDiagram
+    class EmployeeDialog {
+        +string Name
+        +int SocialSecurityNumber
+        +string Biography
+        +int Category
+        +boolean LifeInsurance
+        +boolean DisabilityInsurance  
+        +boolean MedicalInsurance
+        +string Skill
+        +string Education
+        +string Department
+        +string Language
+        +int LoyaltyRating
+        +int ReliabilityRating
+        +int Grade
+    }
+```
+
+### Data Fields Documentation
+
+| Field | Data Type | UI Control | Business Purpose |
+|-------|-----------|------------|------------------|
+| Name | string | Edit Box | Employee full name |
+| SocialSecurityNumber | int | Edit Box | Social Security Number |
+| Biography | string | Multi-line Edit | Employee biography |
+| Category | int | Radio Buttons | Employment type (Hourly/Salary) |
+| LifeInsurance | boolean | Checkbox | Life insurance enrollment |
+| DisabilityInsurance | boolean | Checkbox | Disability insurance enrollment |
+| MedicalInsurance | boolean | Checkbox | Medical insurance enrollment |
+| Skill | string | Combo Box | Technical skill level |
+| Education | string | Dropdown Combo | Education level |
+| Department | string | List Box | Department assignment |
+| Language | string | Droplist Combo | Language proficiency |
+| LoyaltyRating | int | Scroll Bar | Loyalty rating (0-100) |
+| ReliabilityRating | int | Scroll Bar | Reliability rating (0-100) |
+| Grade | int | Edit Box | Performance grade (0-100) |
+
+**Evidence**: <cite repo="garo-workspace-devin-temp/MFC-Examples" path="VC++jsnm code/ex06a/ex06a.rc" start="104" end="180" />
+
+### Potential Database Schema for Migration
+
+If persistent storage is added during .NET migration, the recommended database schema would be:
+
+```mermaid
+erDiagram
+    Employee {
+        int EmployeeId PK "Required, Unique, Auto-increment"
+        string Name "Required, Max 50 chars"
+        int SocialSecurityNumber "Required, Unique, 9 digits"
+        string Biography "Nullable, Max 500 chars"
+        int EmploymentCategory "Required, 1=Hourly 2=Salary"
+        int Grade "Required, Range 0-100"
+        string Department "Required, Max 30 chars"
+        int LoyaltyRating "Required, Range 0-100"
+        int ReliabilityRating "Required, Range 0-100"
+        datetime CreatedDate "Required, Default GETDATE()"
+        datetime ModifiedDate "Required, Default GETDATE()"
+    }
+    
+    EmployeeInsurance {
+        int EmployeeId FK "Required"
+        string InsuranceType "Required, Life/Disability/Medical"
+        boolean IsEnrolled "Required, Default false"
+        datetime EnrollmentDate "Nullable"
+    }
+    
+    EmployeeSkills {
+        int EmployeeId FK "Required"
+        string SkillType "Required, Max 30 chars"
+        string SkillLevel "Required, Max 20 chars"
+        string Education "Nullable, Max 50 chars"
+        string Language "Nullable, Max 20 chars"
+    }
+    
+    Employee ||--o{ EmployeeInsurance : "has coverage"
+    Employee ||--o{ EmployeeSkills : "possesses skills"
+```
+
 ---
 
 *This analysis documents the business data model implemented in ex06a based solely on evidence found in the source code, focusing on how the application manages employee information for human resources and organizational management purposes.*
