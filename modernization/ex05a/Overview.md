@@ -221,4 +221,25 @@ public class FontDisplayItem
 
 ---
 
+### Estimate Methodology Footnote
+
+**Estimation Approach**: These estimates are derived using the following methodology:
+
+1. **Functionality Analysis**: Based on examination of `ex05aView.cpp:65-85` showing simple font display loop with no business logic
+2. **Serialization Assessment**: Analysis of `ex05aDoc.cpp:45-55` confirming empty methods requiring no data persistence migration
+3. **UI Simplicity**: Single view with ItemsControl data binding replacing custom drawing logic
+4. **Technology Mapping**: Direct WPF equivalent using TextBlock controls with FontSize binding
+5. **Educational Value**: Minimal complexity ideal for team learning WPF concepts
+6. **AI Assistance Factor**: 40-50% productivity improvement due to simple, well-documented WPF patterns
+7. **Template Creation**: Additional value as foundation for other simple application migrations
+8. **Testing Scope**: Limited to visual comparison and basic functionality validation
+
+**Key Assumptions**:
+- Font rendering differences between MFC and WPF are acceptable for demonstration purposes
+- Educational/demonstration purpose remains primary goal
+- File operations can be simplified or removed without business impact
+- Modern .NET font rendering capabilities provide equivalent educational value
+
+---
+
 *This analysis provides evidence-based assessment of ex05a as a minimal-complexity font demonstration application ideal for initial .NET migration experience and team training.*

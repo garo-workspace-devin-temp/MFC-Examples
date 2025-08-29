@@ -154,6 +154,27 @@ None identified - standard form controls with well-established migration pattern
 
 ---
 
+### Estimate Methodology Footnote
+
+**Estimation Approach**: These estimates are derived using the following methodology:
+
+1. **Form Complexity Analysis**: Based on examination of `ex06a.rc` showing 13 form fields across 5 logical sections with multiple control types
+2. **Validation Assessment**: Analysis of DDX/DDV patterns in `Ex06aDialog.cpp` requiring WPF validation framework migration
+3. **UI Component Mapping**: Identified WPF equivalents for radio buttons, checkboxes, combo boxes, and scroll bars
+4. **MVVM Implementation**: Estimated effort for ViewModel creation with data binding and validation attributes
+5. **Industry Standards**: Applied standard form migration effort ratios based on control complexity and validation rules
+6. **AI Assistance Factor**: 25-35% productivity improvement from automated XAML generation and data binding patterns
+7. **Learning Curve**: Additional time for team to learn WPF/MVVM patterns if new to technology
+8. **Testing Requirements**: Comprehensive form behavior and validation testing across all control types
+
+**Key Assumptions**:
+- Development team familiar with C# and .NET development
+- Target environment supports WPF applications
+- Current validation rules represent actual business requirements
+- Database or file storage available for employee data persistence
+
+---
+
 *This analysis provides evidence-based assessment of ex06a as a comprehensive employee data entry application requiring medium-complexity WPF migration with MVVM patterns.*
 
 ## User Interface

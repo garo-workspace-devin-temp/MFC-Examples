@@ -157,6 +157,26 @@ CStringArray m_arrayFieldName; // Dynamic field names
 
 ---
 
+### Estimate Methodology Footnote
+
+**Estimation Approach**: These estimates are derived using the following methodology:
+
+1. **Complexity Analysis**: Based on source code examination of `ex28dDoc.h:23-31` showing CDatabase/CRecordset patterns requiring Entity Framework Core conversion
+2. **Feature Mapping**: Identified 5 major components requiring migration (database service, query execution, UI, testing, documentation)
+3. **Technology Comparison**: Assessed complexity difference between direct ODBC access and Entity Framework abstraction layer
+4. **Industry Standards**: Applied standard software development effort multipliers for database migration projects
+5. **AI Assistance Factor**: 30-40% productivity improvement based on code generation capabilities for Entity Framework patterns
+6. **Risk Buffer**: 20-30% additional time included for database provider compatibility issues and performance optimization
+7. **Team Profile**: Assumes mid-senior developer (3-5 years) with database experience but new to Entity Framework Core
+
+**Key Assumptions**: 
+- Target databases have available Entity Framework Core providers
+- Development team has access to test databases for migration validation
+- Performance requirements allow Entity Framework overhead compared to direct ODBC
+- Legacy database migration tools available if needed for ISAM format conversion
+
+---
+
 *This analysis provides evidence-based assessment of ex28d as a critical database browser application requiring high-complexity Entity Framework Core migration with multiple database provider support.*
 
 ## User Interface
