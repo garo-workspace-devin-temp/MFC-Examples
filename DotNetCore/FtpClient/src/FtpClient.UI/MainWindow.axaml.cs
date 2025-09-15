@@ -29,11 +29,33 @@ public partial class MainWindow : Window
         UpdateConnectionStatus();
     }
 
-    private void BrowseButton_Click(object? sender, RoutedEventArgs e)
+    private async void BrowseButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (ProtocolOutput != null)
+        if (!_ftpClient.IsAuthenticated)
         {
-            ProtocolOutput.Text += "\nBrowse FTP Files functionality will be implemented in future iterations.";
+            if (ProtocolOutput != null)
+            {
+                ProtocolOutput.Text += "\nPlease connect to an FTP server first using Connection Settings.";
+            }
+            return;
+        }
+
+        try
+        {
+            var browseDialog = new Views.FtpBrowseDialog(_ftpClient);
+            var result = await browseDialog.ShowDialogAsync(this);
+            
+            if (result && ProtocolOutput != null)
+            {
+                ProtocolOutput.Text += $"\nSelected: {browseDialog.SelectedPath}";
+            }
+        }
+        catch (Exception ex)
+        {
+            if (ProtocolOutput != null)
+            {
+                ProtocolOutput.Text += $"\nBrowse error: {ex.Message}";
+            }
         }
     }
 

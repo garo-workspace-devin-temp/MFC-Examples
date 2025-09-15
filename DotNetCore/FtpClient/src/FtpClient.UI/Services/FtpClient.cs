@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -357,6 +359,117 @@ public class FtpClient : IDisposable
 
         await LogoutAsync();
         return await LoginAsync(_lastLogonInfo);
+    }
+
+    public async Task<List<FtpFileInfo>> ListDirectoryAsync(string path = "/")
+    {
+        if (!IsAuthenticated)
+            throw new InvalidOperationException("Not authenticated");
+
+        try
+        {
+            var response = await ExecuteDataChannelCommandAsync("LIST", path);
+            return FtpListParser.ParseListResponse(response, path);
+        }
+        catch (Exception ex)
+        {
+            ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(ConnectionState, ConnectionState.Error, "Directory listing failed", ex));
+            throw;
+        }
+    }
+
+    public async Task<List<string>> GetNameListAsync(string path = "/")
+    {
+        if (!IsAuthenticated)
+            throw new InvalidOperationException("Not authenticated");
+
+        try
+        {
+            var response = await ExecuteDataChannelCommandAsync("NLST", path);
+            var lines = response.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            return new List<string>(lines.Where(line => !string.IsNullOrWhiteSpace(line)).Select(line => line.Trim()));
+        }
+        catch (Exception ex)
+        {
+            ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(ConnectionState, ConnectionState.Error, "Name listing failed", ex));
+            throw;
+        }
+    }
+
+    private async Task<string> ExecuteDataChannelCommandAsync(string command, string argument = "")
+    {
+        if (_controlWriter == null || _controlReader == null)
+            throw new InvalidOperationException("Not connected");
+
+        TcpClient? dataConnection = null;
+        NetworkStream? dataStream = null;
+
+        try
+        {
+            if (_lastLogonInfo?.PassiveMode == true)
+            {
+                var pasvResponse = await SendCommandAsync("PASV", "");
+                if (!IsPositiveCompletionReply(pasvResponse))
+                    throw new InvalidOperationException($"PASV command failed: {pasvResponse}");
+
+                var (host, port) = ParsePasvResponse(pasvResponse);
+                dataConnection = new TcpClient();
+                await dataConnection.ConnectAsync(host, port);
+                dataStream = dataConnection.GetStream();
+            }
+            else
+            {
+                throw new NotImplementedException("Active mode not implemented yet");
+            }
+
+            var commandResponse = await SendCommandAsync(command, argument);
+            if (!IsPositiveIntermediateReply(commandResponse) && !IsPositiveCompletionReply(commandResponse))
+                throw new InvalidOperationException($"{command} command failed: {commandResponse}");
+
+            var data = new List<byte>();
+            var buffer = new byte[4096];
+            int bytesRead;
+
+            while ((bytesRead = await dataStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                for (int i = 0; i < bytesRead; i++)
+                {
+                    data.Add(buffer[i]);
+                }
+            }
+
+            dataConnection.Close();
+            
+            var completionResponse = await GetResponseAsync();
+            if (!IsPositiveCompletionReply(completionResponse))
+                throw new InvalidOperationException($"Data transfer completion failed: {completionResponse}");
+
+            return System.Text.Encoding.ASCII.GetString(data.ToArray());
+        }
+        finally
+        {
+            dataStream?.Dispose();
+            dataConnection?.Dispose();
+        }
+    }
+
+    private (string host, int port) ParsePasvResponse(string response)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(response, @"\((\d+),(\d+),(\d+),(\d+),(\d+),(\d+)\)");
+        if (!match.Success)
+            throw new InvalidOperationException($"Invalid PASV response: {response}");
+
+        var ip1 = int.Parse(match.Groups[1].Value);
+        var ip2 = int.Parse(match.Groups[2].Value);
+        var ip3 = int.Parse(match.Groups[3].Value);
+        var ip4 = int.Parse(match.Groups[4].Value);
+        var port1 = int.Parse(match.Groups[5].Value);
+        var port2 = int.Parse(match.Groups[6].Value);
+
+        var host = $"{ip1}.{ip2}.{ip3}.{ip4}";
+        var port = (port1 * 256) + port2;
+
+        return (host, port);
     }
 
     public void Dispose()
