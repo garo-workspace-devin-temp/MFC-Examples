@@ -19,9 +19,4 @@
     <PackageReference Include="Microsoft.Toolkit.Mvvm" Version="7.1.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\FtpClient.Core\FtpClient.Core.csproj" />
-    <ProjectReference Include="..\FtpClient.Infrastructure\FtpClient.Infrastructure.csproj" />
-  </ItemGroup>
-
 </Project>
