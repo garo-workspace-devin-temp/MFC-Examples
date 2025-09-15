@@ -30,13 +30,13 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="80"/>
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Row="0" Grid.Column="0" Content="Hostname:" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Name="HostnameTextBox" Margin="0,0,5,5"/>
-                <Label Grid.Row="0" Grid.Column="3" Content="Port:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Name="HostnameTextBox" Margin="0,0,5,5"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="Port:" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="0" Grid.Column="3" Name="PortTextBox" Text="21" Margin="0,0,0,5"/>
 
                 <Label Grid.Row="1" Grid.Column="0" Content="Username:" VerticalAlignment="Center"/>
@@ -70,7 +70,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="80"/>
                 </Grid.ColumnDefinitions>
 
@@ -90,8 +90,8 @@
                 </ComboBox>
 
                 <Label Grid.Row="2" Grid.Column="0" Content="Hostname:" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Name="FirewallHostnameTextBox" Margin="0,0,5,5"/>
-                <Label Grid.Row="2" Grid.Column="3" Content="Port:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Name="FirewallHostnameTextBox" Margin="0,0,5,5"/>
+                <Label Grid.Row="2" Grid.Column="2" Content="Port:" VerticalAlignment="Center"/>
                 <TextBox Grid.Row="2" Grid.Column="3" Name="FirewallPortTextBox" Text="21" Margin="0,0,0,5"/>
 
                 <Label Grid.Row="3" Grid.Column="0" Content="Username:" VerticalAlignment="Center"/>
