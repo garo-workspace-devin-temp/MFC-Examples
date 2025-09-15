@@ -1,0 +1,112 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="450" d:DesignHeight="500"
+        x:Class="FtpClient.UI.Views.ConnectionSettingsDialog"
+        Title="FTP Connection Settings" Width="450" Height="500"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Server Connection Settings -->
+        <Border Grid.Row="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="0,0,0,10">
+            <StackPanel>
+                <TextBlock Text="Server Connection" FontWeight="Bold" Margin="10,5,10,0" Background="LightGray" Padding="5"/>
+                <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Row="0" Grid.Column="0" Content="Hostname:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Name="HostnameTextBox" Margin="0,0,5,5"/>
+                <Label Grid.Row="0" Grid.Column="3" Content="Port:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="3" Name="PortTextBox" Text="21" Margin="0,0,0,5"/>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="Username:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Name="UsernameTextBox" Text="anonymous" Margin="0,0,0,5"/>
+
+                <Label Grid.Row="2" Grid.Column="0" Content="Password:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Name="PasswordTextBox" Text="anonymous@user.com" PasswordChar="*" Margin="0,0,0,5"/>
+
+                <Label Grid.Row="3" Grid.Column="0" Content="Account:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Name="AccountTextBox" Margin="0,0,0,5"/>
+
+                <CheckBox Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Name="PassiveModeCheckBox" Content="Use Passive Mode" IsChecked="True" Margin="0,5,0,0"/>
+                <Button Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="2" Name="AnonymousButton" Content="Anonymous" Click="AnonymousButton_Click" Margin="5,5,0,0"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Firewall Settings -->
+        <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="0,0,0,10">
+            <StackPanel>
+                <TextBlock Text="Firewall Settings" FontWeight="Bold" Margin="10,5,10,0" Background="LightGray" Padding="5"/>
+                <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+
+                <CheckBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Name="UseFirewallCheckBox" Content="Use Firewall" Margin="0,0,0,5" Checked="UseFirewallCheckBox_Changed" Unchecked="UseFirewallCheckBox_Changed"/>
+
+                <Label Grid.Row="1" Grid.Column="0" Content="Type:" VerticalAlignment="Center"/>
+                <ComboBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Name="FirewallTypeComboBox" Margin="0,0,0,5">
+                    <ComboBoxItem Content="None" Tag="0"/>
+                    <ComboBoxItem Content="SITE hostname" Tag="1"/>
+                    <ComboBoxItem Content="USER after logon" Tag="2"/>
+                    <ComboBoxItem Content="Proxy OPEN" Tag="3"/>
+                    <ComboBoxItem Content="Transparent" Tag="4"/>
+                    <ComboBoxItem Content="USER with no logon" Tag="5"/>
+                    <ComboBoxItem Content="USER fireID@remotehost" Tag="6"/>
+                    <ComboBoxItem Content="USER remoteID@remotehost fireID" Tag="7"/>
+                    <ComboBoxItem Content="USER remoteID@fireID@remotehost" Tag="8"/>
+                </ComboBox>
+
+                <Label Grid.Row="2" Grid.Column="0" Content="Hostname:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Name="FirewallHostnameTextBox" Margin="0,0,5,5"/>
+                <Label Grid.Row="2" Grid.Column="3" Content="Port:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="2" Grid.Column="3" Name="FirewallPortTextBox" Text="21" Margin="0,0,0,5"/>
+
+                <Label Grid.Row="3" Grid.Column="0" Content="Username:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="3" Name="FirewallUsernameTextBox" Margin="0,0,0,5"/>
+
+                <Label Grid.Row="4" Grid.Column="0" Content="Password:" VerticalAlignment="Center"/>
+                <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Name="FirewallPasswordTextBox" PasswordChar="*" Margin="0,0,0,5"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Name="OkButton" Content="OK" Width="80" Margin="0,0,10,0" Click="OkButton_Click"/>
+            <Button Name="CancelButton" Content="Cancel" Width="80" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
