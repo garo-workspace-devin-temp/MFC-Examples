@@ -1,0 +1,27 @@
+<Window x:Class="FtpClient.UI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FTP Client" Width="480" Height="300"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
+            <Button Name="BrowseButton" Content="Browse FTP Files" Margin="0,0,10,0" Padding="10,5" Click="BrowseButton_Click"/>
+            <Button Name="SettingsButton" Content="Connection Settings" Margin="0,0,10,0" Padding="10,5" Click="SettingsButton_Click"/>
+            <Button Name="CloseButton" Content="Close" HorizontalAlignment="Right" Padding="10,5" Click="CloseButton_Click"/>
+        </StackPanel>
+        
+        <Border Grid.Row="1" Margin="10" BorderBrush="Gray" BorderThickness="1">
+            <TextBox Name="ProtocolOutput" 
+                     IsReadOnly="True" 
+                     VerticalScrollBarVisibility="Auto" 
+                     FontFamily="Consolas"
+                     Background="White"
+                     Text="FTP Client Ready - Use Connection Settings to configure server connection"/>
+        </Border>
+    </Grid>
+</Window>
