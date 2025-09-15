@@ -2,10 +2,38 @@ using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using FtpClient.UI.Models;
 
 namespace FtpClient.UI.Services;
+
+public enum ConnectionState
+{
+    Disconnected,
+    Connecting,
+    Connected,
+    Authenticating,
+    Authenticated,
+    Disconnecting,
+    Error
+}
+
+public class ConnectionStateChangedEventArgs : EventArgs
+{
+    public ConnectionState OldState { get; }
+    public ConnectionState NewState { get; }
+    public string? Message { get; }
+    public Exception? Exception { get; }
+
+    public ConnectionStateChangedEventArgs(ConnectionState oldState, ConnectionState newState, string? message = null, Exception? exception = null)
+    {
+        OldState = oldState;
+        NewState = newState;
+        Message = message;
+        Exception = exception;
+    }
+}
 
 public class FtpClient : IDisposable
 {
@@ -13,33 +41,71 @@ public class FtpClient : IDisposable
     private NetworkStream? _controlStream;
     private StreamReader? _controlReader;
     private StreamWriter? _controlWriter;
-    private bool _isConnected = false;
+    private ConnectionState _connectionState = ConnectionState.Disconnected;
     private LogonInfo? _lastLogonInfo;
+    private DateTime _lastActivityTime = DateTime.UtcNow;
+    private readonly Timer _keepAliveTimer;
+    private readonly object _stateLock = new object();
 
-    public bool IsConnected => _isConnected && _controlConnection?.Connected == true;
+    public ConnectionState ConnectionState 
+    { 
+        get 
+        { 
+            lock (_stateLock) 
+            { 
+                return _connectionState; 
+            } 
+        } 
+        private set 
+        { 
+            ConnectionState oldState;
+            lock (_stateLock) 
+            { 
+                oldState = _connectionState;
+                _connectionState = value;
+            }
+            if (oldState != value)
+            {
+                ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(oldState, value));
+            }
+        } 
+    }
+
+    public bool IsConnected => ConnectionState == ConnectionState.Connected || ConnectionState == ConnectionState.Authenticated;
+    public bool IsAuthenticated => ConnectionState == ConnectionState.Authenticated;
     public LogonInfo? LastLogonInfo => _lastLogonInfo;
+    public DateTime LastActivityTime => _lastActivityTime;
+    public TimeSpan ConnectionTimeout { get; set; } = TimeSpan.FromSeconds(30);
+    public TimeSpan KeepAliveInterval { get; set; } = TimeSpan.FromMinutes(5);
 
+    public event EventHandler<ConnectionStateChangedEventArgs>? ConnectionStateChanged;
     public event Action<string>? CommandSent;
     public event Action<string>? ResponseReceived;
 
+    public FtpClient()
+    {
+        _keepAliveTimer = new Timer(OnKeepAliveTimer, null, Timeout.Infinite, Timeout.Infinite);
+    }
+
     public async Task<bool> LoginAsync(LogonInfo logonInfo)
     {
-        _lastLogonInfo = logonInfo;
-
-        int[,] logonSequences = new int[9, 18] {
-            { 0,-2,3,    1,-2, 6,   2,-2,-1,   0, 0, 0,   0, 0, 0,   0, 0, 0 },
-            { 3, 6,3,    4, 6,-1,   5,-1, 9,   0,-2,12,   1,-2,15,   2,-2,-1 },
-            { 3, 6,3,    4, 6,-1,   6,-2, 9,   1,-2,12,   2,-2,-1,   0, 0, 0 },
-            { 7, 3,3,    0,-2, 6,   1,-2, 9,   2,-2,-1,   0, 0, 0,   0, 0, 0 },
-            { 3, 6,3,    4, 6,-1,   0,-2, 9,   1,-2,12,   2,-2,-1,   0, 0, 0 },
-            { 6,-2,3,    1,-2, 6,   2,-2,-1,   0, 0, 0,   0, 0, 0,   0, 0, 0 },
-            { 8, 6,3,    4, 6,-1,   0,-2, 9,   1,-2,12,   2,-2,-1,   0, 0, 0 },
-            { 9,-1,3,    1,-2, 6,   2,-2,-1,   0, 0, 0,   0, 0, 0,   0, 0, 0 },
-            {10,-2,3,   11,-2, 6,   2,-2,-1,   0, 0, 0,   0, 0, 0,   0, 0, 0 }
-        };
-
         try
         {
+            ConnectionState = ConnectionState.Connecting;
+            _lastLogonInfo = logonInfo;
+
+            int[,] logonSequences = new int[9, 18] {
+                { 0,-2,3,    1,-2, 6,   2,-2,-1,   0, 0, 0,   0, 0, 0,   0, 0, 0 },
+                { 3, 6,3,    4, 6,-1,   5,-1, 9,   0,-2,12,   1,-2,15,   2,-2,-1 },
+                { 3, 6,3,    4, 6,-1,   6,-2, 9,   1,-2,12,   2,-2,-1,   0, 0, 0 },
+                { 7, 3,3,    0,-2, 6,   1,-2, 9,   2,-2,-1,   0, 0, 0,   0, 0, 0 },
+                { 3, 6,3,    4, 6,-1,   0,-2, 9,   1,-2,12,   2,-2,-1,   0, 0, 0 },
+                { 6,-2,3,    1,-2, 6,   2,-2,-1,   0, 0, 0,   0, 0, 0,   0, 0, 0 },
+                { 8, 6,3,    4, 6,-1,   0,-2, 9,   1,-2,12,   2,-2,-1,   0, 0, 0 },
+                { 9,-1,3,    1,-2, 6,   2,-2,-1,   0, 0, 0,   0, 0, 0,   0, 0, 0 },
+                {10,-2,3,   11,-2, 6,   2,-2,-1,   0, 0, 0,   0, 0, 0,   0, 0, 0 }
+            };
+
             if (IsConnected)
                 await LogoutAsync();
 
@@ -47,11 +113,21 @@ public class FtpClient : IDisposable
             ushort port = logonInfo.UseFirewall ? logonInfo.FirewallPort : logonInfo.Hostport;
 
             if (!await OpenControlChannelAsync(hostname, port))
+            {
+                ConnectionState = ConnectionState.Error;
                 return false;
+            }
+
+            ConnectionState = ConnectionState.Connected;
 
             string initialResponse = await GetResponseAsync();
             if (!IsPositiveCompletionReply(initialResponse))
+            {
+                ConnectionState = ConnectionState.Error;
                 return false;
+            }
+
+            ConnectionState = ConnectionState.Authenticating;
 
             int logonPoint = 0;
             int firewallTypeIndex = (int)logonInfo.FirewallType;
@@ -101,27 +177,37 @@ public class FtpClient : IDisposable
                         response = await SendCommandAsync("PASS", $"{logonInfo.Password}@{logonInfo.FirewallPassword}");
                         break;
                     default:
+                        ConnectionState = ConnectionState.Error;
                         return false;
                 }
 
                 if (!IsPositiveCompletionReply(response) && !IsPositiveIntermediateReply(response))
+                {
+                    ConnectionState = ConnectionState.Error;
                     return false;
+                }
 
                 int responseCode = GetResponseCode(response);
                 int nextIndex = logonPoint + (responseCode / 100) - 1;
                 logonPoint = logonSequences[firewallTypeIndex, nextIndex];
 
                 if (logonPoint == -1)
+                {
+                    ConnectionState = ConnectionState.Error;
                     return false;
+                }
                 if (logonPoint == -2)
                 {
-                    _isConnected = true;
+                    ConnectionState = ConnectionState.Authenticated;
+                    StartKeepAliveTimer();
                     return true;
                 }
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            ConnectionState = ConnectionState.Error;
+            ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(ConnectionState.Error, ConnectionState.Error, "Login failed", ex));
             await LogoutAsync();
             return false;
         }
@@ -131,7 +217,10 @@ public class FtpClient : IDisposable
     {
         try
         {
-            if (IsConnected)
+            ConnectionState = ConnectionState.Disconnecting;
+            StopKeepAliveTimer();
+
+            if (IsConnected && _controlWriter != null)
             {
                 await SendCommandAsync("QUIT", "");
             }
@@ -142,6 +231,7 @@ public class FtpClient : IDisposable
         finally
         {
             CloseConnection();
+            ConnectionState = ConnectionState.Disconnected;
         }
     }
 
@@ -150,16 +240,21 @@ public class FtpClient : IDisposable
         try
         {
             _controlConnection = new TcpClient();
-            await _controlConnection.ConnectAsync(hostname, port);
+            
+            using var cts = new CancellationTokenSource(ConnectionTimeout);
+            await _controlConnection.ConnectAsync(hostname, port, cts.Token);
             
             _controlStream = _controlConnection.GetStream();
             _controlReader = new StreamReader(_controlStream, Encoding.ASCII);
             _controlWriter = new StreamWriter(_controlStream, Encoding.ASCII) { AutoFlush = true };
             
+            UpdateLastActivityTime();
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            ConnectionState = ConnectionState.Error;
+            ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(ConnectionState.Connecting, ConnectionState.Error, $"Failed to connect to {hostname}:{port}", ex));
             CloseConnection();
             return false;
         }
@@ -174,6 +269,7 @@ public class FtpClient : IDisposable
         CommandSent?.Invoke(fullCommand);
         
         await _controlWriter.WriteLineAsync(fullCommand);
+        UpdateLastActivityTime();
         return await GetResponseAsync();
     }
 
@@ -184,6 +280,7 @@ public class FtpClient : IDisposable
 
         string response = await _controlReader.ReadLineAsync() ?? "";
         ResponseReceived?.Invoke(response);
+        UpdateLastActivityTime();
         return response;
     }
 
@@ -206,7 +303,8 @@ public class FtpClient : IDisposable
 
     private void CloseConnection()
     {
-        _isConnected = false;
+        StopKeepAliveTimer();
+        
         _controlReader?.Dispose();
         _controlWriter?.Dispose();
         _controlStream?.Dispose();
@@ -218,8 +316,52 @@ public class FtpClient : IDisposable
         _controlConnection = null;
     }
 
+    private void UpdateLastActivityTime()
+    {
+        _lastActivityTime = DateTime.UtcNow;
+    }
+
+    private void StartKeepAliveTimer()
+    {
+        if (KeepAliveInterval > TimeSpan.Zero)
+        {
+            _keepAliveTimer.Change(KeepAliveInterval, KeepAliveInterval);
+        }
+    }
+
+    private void StopKeepAliveTimer()
+    {
+        _keepAliveTimer.Change(Timeout.Infinite, Timeout.Infinite);
+    }
+
+    private async void OnKeepAliveTimer(object? state)
+    {
+        try
+        {
+            if (IsAuthenticated && DateTime.UtcNow - _lastActivityTime > KeepAliveInterval)
+            {
+                await SendCommandAsync("NOOP", "");
+            }
+        }
+        catch (Exception ex)
+        {
+            ConnectionState = ConnectionState.Error;
+            ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(ConnectionState.Authenticated, ConnectionState.Error, "Keep-alive failed", ex));
+        }
+    }
+
+    public async Task<bool> ReconnectAsync()
+    {
+        if (_lastLogonInfo == null)
+            return false;
+
+        await LogoutAsync();
+        return await LoginAsync(_lastLogonInfo);
+    }
+
     public void Dispose()
     {
+        _keepAliveTimer?.Dispose();
         CloseConnection();
     }
 }

@@ -10,11 +10,14 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
             <Button Name="BrowseButton" Content="Browse FTP Files" Margin="0,0,10,0" Padding="10,5" Click="BrowseButton_Click"/>
             <Button Name="SettingsButton" Content="Connection Settings" Margin="0,0,10,0" Padding="10,5" Click="SettingsButton_Click"/>
+            <Button Name="DisconnectButton" Content="Disconnect" Margin="0,0,10,0" Padding="10,5" Click="DisconnectButton_Click" IsEnabled="False"/>
+            <Button Name="ReconnectButton" Content="Reconnect" Margin="0,0,10,0" Padding="10,5" Click="ReconnectButton_Click" IsEnabled="False"/>
             <Button Name="CloseButton" Content="Close" HorizontalAlignment="Right" Padding="10,5" Click="CloseButton_Click"/>
         </StackPanel>
         
@@ -27,6 +30,27 @@
                      FontFamily="Consolas"
                      Background="White"
                      Text="FTP Client Ready - Use Connection Settings to configure server connection"/>
+        </Border>
+        
+        <!-- Connection Status Bar -->
+        <Border Grid.Row="2" Background="LightGray" BorderBrush="Gray" BorderThickness="0,1,0,0">
+            <Grid Margin="10,5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="Status:" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <Ellipse Name="StatusIndicator" Width="12" Height="12" Fill="Gray" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                    <TextBlock Name="ConnectionStatusText" Text="Disconnected" VerticalAlignment="Center" FontWeight="Bold"/>
+                </StackPanel>
+                
+                <TextBlock Name="ServerInfoText" Grid.Column="1" Text="" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic"/>
+                
+                <TextBlock Name="LastActivityText" Grid.Column="2" Text="" VerticalAlignment="Center" FontSize="11" Foreground="DarkGray"/>
+            </Grid>
         </Border>
     </Grid>
 </Window>
