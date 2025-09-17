@@ -296,6 +296,11 @@ public class FtpClient : IDisposable
         return response.Length >= 3 && response[0] == '3';
     }
 
+    private static bool IsPositivePreliminaryReply(string response)
+    {
+        return response.Length >= 3 && response[0] == '1';
+    }
+
     private static int GetResponseCode(string response)
     {
         if (response.Length >= 3 && int.TryParse(response.Substring(0, 3), out int code))
@@ -468,6 +473,7 @@ public class FtpClient : IDisposable
             if (_lastLogonInfo?.PassiveMode == true)
             {
                 var pasvResponse = await SendCommandAsync("PASV", "");
+                
                 if (!IsPositiveCompletionReply(pasvResponse))
                     throw new InvalidOperationException($"PASV command failed: {pasvResponse}");
 
@@ -476,6 +482,7 @@ public class FtpClient : IDisposable
                 
                 using var cts = new CancellationTokenSource(ConnectionTimeout);
                 await dataConnection.ConnectAsync(host, port, cts.Token);
+                
                 dataStream = dataConnection.GetStream();
             }
             else
@@ -484,7 +491,8 @@ public class FtpClient : IDisposable
             }
 
             var commandResponse = await SendCommandAsync(command, argument);
-            if (!IsPositiveIntermediateReply(commandResponse) && !IsPositiveCompletionReply(commandResponse))
+            
+            if (!IsPositivePreliminaryReply(commandResponse) && !IsPositiveIntermediateReply(commandResponse) && !IsPositiveCompletionReply(commandResponse))
                 throw new InvalidOperationException($"{command} command failed: {commandResponse}");
 
             var data = new List<byte>();
@@ -500,7 +508,6 @@ public class FtpClient : IDisposable
                     data.Add(buffer[i]);
                 }
             }
-
             dataConnection.Close();
             
             var completionResponse = await GetResponseAsync();
