@@ -73,14 +73,39 @@ public partial class FtpBrowseDialog : Window
         CurrentPathTextBox.Text = _currentPath;
     }
 
-    public async Task<bool> ShowDialogAsync(Window parent, string initialPath = "/")
+    public async Task<bool> ShowDialogAsync(Window? parent = null, string initialPath = "/")
     {
         _currentPath = initialPath;
         CurrentPathTextBox.Text = _currentPath;
         
         await LoadDirectoryAsync(_currentPath);
         
-        await ShowDialog(parent);
+        if (parent != null)
+        {
+            try
+            {
+                await ShowDialog(parent);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("non-visible owner"))
+            {
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                Show();
+                
+                var tcs = new TaskCompletionSource<bool>();
+                Closed += (s, e) => tcs.SetResult(DialogResult);
+                await tcs.Task;
+            }
+        }
+        else
+        {
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            Show();
+            
+            var tcs = new TaskCompletionSource<bool>();
+            Closed += (s, e) => tcs.SetResult(DialogResult);
+            await tcs.Task;
+        }
+        
         return DialogResult;
     }
 
@@ -254,7 +279,20 @@ public partial class FtpBrowseDialog : Window
         stackPanel.Children.Add(okButton);
         
         errorDialog.Content = stackPanel;
-        await errorDialog.ShowDialog(this);
+        
+        try
+        {
+            await errorDialog.ShowDialog(this);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("non-visible owner"))
+        {
+            errorDialog.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            errorDialog.Show();
+            
+            var tcs = new TaskCompletionSource<bool>();
+            errorDialog.Closed += (s, e) => tcs.SetResult(true);
+            await tcs.Task;
+        }
     }
 
     private void OkButton_Click(object? sender, RoutedEventArgs e)

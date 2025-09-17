@@ -473,7 +473,9 @@ public class FtpClient : IDisposable
 
                 var (host, port) = ParsePasvResponse(pasvResponse);
                 dataConnection = new TcpClient();
-                await dataConnection.ConnectAsync(host, port);
+                
+                using var cts = new CancellationTokenSource(ConnectionTimeout);
+                await dataConnection.ConnectAsync(host, port, cts.Token);
                 dataStream = dataConnection.GetStream();
             }
             else
@@ -489,7 +491,9 @@ public class FtpClient : IDisposable
             var buffer = new byte[4096];
             int bytesRead;
 
-            while ((bytesRead = await dataStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            using var readCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            
+            while ((bytesRead = await dataStream.ReadAsync(buffer, 0, buffer.Length, readCts.Token)) > 0)
             {
                 for (int i = 0; i < bytesRead; i++)
                 {
