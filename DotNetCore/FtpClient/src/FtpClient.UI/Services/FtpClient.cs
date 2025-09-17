@@ -396,6 +396,65 @@ public class FtpClient : IDisposable
         }
     }
 
+    public async Task<bool> ChangeWorkingDirectoryAsync(string path)
+    {
+        if (!IsAuthenticated)
+            throw new InvalidOperationException("Not authenticated");
+
+        try
+        {
+            var response = await SendCommandAsync("CWD", path);
+            return IsPositiveCompletionReply(response);
+        }
+        catch (Exception ex)
+        {
+            ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(ConnectionState, ConnectionState.Error, "Directory change failed", ex));
+            return false;
+        }
+    }
+
+    public async Task<bool> ChangeToParentDirectoryAsync()
+    {
+        if (!IsAuthenticated)
+            throw new InvalidOperationException("Not authenticated");
+
+        try
+        {
+            var response = await SendCommandAsync("CDUP", "");
+            return IsPositiveCompletionReply(response);
+        }
+        catch (Exception ex)
+        {
+            ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(ConnectionState, ConnectionState.Error, "Parent directory change failed", ex));
+            return false;
+        }
+    }
+
+    public async Task<string> GetCurrentWorkingDirectoryAsync()
+    {
+        if (!IsAuthenticated)
+            throw new InvalidOperationException("Not authenticated");
+
+        try
+        {
+            var response = await SendCommandAsync("PWD", "");
+            if (IsPositiveCompletionReply(response))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(response, "\"(.+)\"");
+                if (match.Success)
+                {
+                    return match.Groups[1].Value;
+                }
+            }
+            return "/";
+        }
+        catch (Exception ex)
+        {
+            ConnectionStateChanged?.Invoke(this, new ConnectionStateChangedEventArgs(ConnectionState, ConnectionState.Error, "Get working directory failed", ex));
+            return "/";
+        }
+    }
+
     private async Task<string> ExecuteDataChannelCommandAsync(string command, string argument = "")
     {
         if (_controlWriter == null || _controlReader == null)

@@ -27,7 +27,10 @@
                 
                 <TextBlock Grid.Column="0" Text="Current Path:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <TextBox Grid.Column="1" Name="CurrentPathTextBox" Text="/" IsReadOnly="True" VerticalAlignment="Center"/>
-                <Button Grid.Column="2" Name="RefreshButton" Content="Refresh" Margin="10,0,0,0" Padding="10,5" Click="RefreshButton_Click"/>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="10,0,0,0">
+                    <Button Name="UpButton" Content="Up" Margin="0,0,5,0" Padding="10,5" Click="UpButton_Click"/>
+                    <Button Name="RefreshButton" Content="Refresh" Padding="10,5" Click="RefreshButton_Click"/>
+                </StackPanel>
             </Grid>
         </Border>
 
@@ -57,7 +60,7 @@
                 </Border>
                 
                 <!-- File List -->
-                <ListBox Grid.Row="1" Name="FileListBox" SelectionMode="Single" SelectionChanged="FileListBox_SelectionChanged">
+                <ListBox Grid.Row="1" Name="FileListBox" SelectionMode="Single" SelectionChanged="FileListBox_SelectionChanged" DoubleTapped="FileListBox_DoubleTapped">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:FtpFileViewModel}">
                             <Grid Margin="2">
@@ -94,6 +97,7 @@
 
         <!-- Buttons -->
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Name="NavigateButton" Content="Navigate" Width="80" Margin="0,0,10,0" Click="NavigateButton_Click" IsEnabled="False"/>
             <Button Name="OkButton" Content="OK" Width="80" Margin="0,0,10,0" Click="OkButton_Click" IsEnabled="False"/>
             <Button Name="CancelButton" Content="Cancel" Width="80" Click="CancelButton_Click"/>
         </StackPanel>

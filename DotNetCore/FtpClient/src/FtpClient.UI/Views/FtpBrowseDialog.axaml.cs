@@ -89,7 +89,31 @@ public partial class FtpBrowseDialog : Window
         await LoadDirectoryAsync(_currentPath);
     }
 
-    private async void FileListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private async void UpButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_currentPath != "/")
+        {
+            try
+            {
+                bool success = await _ftpClient.ChangeToParentDirectoryAsync();
+                if (success)
+                {
+                    var parentPath = GetParentPath(_currentPath);
+                    await LoadDirectoryAsync(parentPath);
+                }
+                else
+                {
+                    await ShowErrorAsync("Failed to navigate to parent directory");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ShowErrorAsync($"Navigation error: {ex.Message}");
+            }
+        }
+    }
+
+    private void FileListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (FileListBox.SelectedItem is FtpFileViewModel selectedFile)
         {
@@ -101,20 +125,21 @@ public partial class FtpBrowseDialog : Window
                 {
                     SelectedPathTextBox.Text = GetParentPath(_currentPath);
                     OkButton.IsEnabled = !ShowFilesOnly;
+                    NavigateButton.IsEnabled = true;
                 }
                 else
                 {
                     var newPath = CombinePath(_currentPath, selectedFile.Name);
                     SelectedPathTextBox.Text = newPath;
                     OkButton.IsEnabled = !ShowFilesOnly;
-                    
-                    await LoadDirectoryAsync(newPath);
+                    NavigateButton.IsEnabled = true;
                 }
             }
             else
             {
                 SelectedPathTextBox.Text = selectedFile.FileInfo.FullPath;
                 OkButton.IsEnabled = true;
+                NavigateButton.IsEnabled = false;
             }
         }
         else
@@ -122,6 +147,49 @@ public partial class FtpBrowseDialog : Window
             _selectedFile = null;
             SelectedPathTextBox.Text = "";
             OkButton.IsEnabled = false;
+            NavigateButton.IsEnabled = false;
+        }
+    }
+
+    private async void FileListBox_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        if (_selectedFile?.FileInfo.IsDirectory == true)
+        {
+            await NavigateToDirectoryAsync(_selectedFile);
+        }
+    }
+
+    private async Task NavigateToDirectoryAsync(FtpFileViewModel directoryItem)
+    {
+        try
+        {
+            string newPath;
+            bool success;
+
+            if (directoryItem.Name == "..")
+            {
+                success = await _ftpClient.ChangeToParentDirectoryAsync();
+                newPath = GetParentPath(_currentPath);
+            }
+            else
+            {
+                var targetPath = CombinePath(_currentPath, directoryItem.Name);
+                success = await _ftpClient.ChangeWorkingDirectoryAsync(targetPath);
+                newPath = targetPath;
+            }
+
+            if (success)
+            {
+                await LoadDirectoryAsync(newPath);
+            }
+            else
+            {
+                await ShowErrorAsync($"Failed to navigate to directory: {directoryItem.Name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ShowErrorAsync($"Navigation error: {ex.Message}");
         }
     }
 
@@ -202,6 +270,14 @@ public partial class FtpBrowseDialog : Window
         
         DialogResult = true;
         Close();
+    }
+
+    private async void NavigateButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_selectedFile?.FileInfo.IsDirectory == true)
+        {
+            await NavigateToDirectoryAsync(_selectedFile);
+        }
     }
 
     private void CancelButton_Click(object? sender, RoutedEventArgs e)
