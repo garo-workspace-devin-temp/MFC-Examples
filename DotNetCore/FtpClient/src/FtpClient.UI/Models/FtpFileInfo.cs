@@ -2,14 +2,6 @@ using System;
 
 namespace FtpClient.UI.Models;
 
-public enum FtpFileType
-{
-    File,
-    Directory,
-    Link,
-    Unknown
-}
-
 public class FtpFileInfo
 {
     public string Name { get; set; } = string.Empty;
